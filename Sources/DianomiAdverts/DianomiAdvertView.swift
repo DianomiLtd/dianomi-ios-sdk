@@ -16,6 +16,13 @@ public class DianomiAdvertView: UIView {
     /// Optional delegate that can be used to moniror status of the Ad
     public weak var delegate: AdvertDelegate?
     
+    /// Make adview scrollable (not scrollable by default)
+    @IBInspectable public var isScrollable: Bool = false {
+        didSet {
+            webView.scrollView.isScrollEnabled = isScrollable
+        }
+    }
+    
     private lazy var webView: WKWebView = {
         let configuration  = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
@@ -36,9 +43,7 @@ public class DianomiAdvertView: UIView {
         wkWebView.navigationDelegate = self
         wkWebView.uiDelegate = self
         
-#if os(iOS)
-        wkWebView.scrollView.isScrollEnabled = false
-#endif
+        wkWebView.scrollView.isScrollEnabled = isScrollable
         return wkWebView
     }()
 
@@ -106,7 +111,6 @@ public class DianomiAdvertView: UIView {
 <html>
 <body style="margin:0;padding:0">
 <meta name="viewport" content="width=device-width, initial-scale=0">
-<script type="text/javascript" src="https://www.dianomi.com/chris/contentRendererListener.js"></script>
 <script type="text/javascript" id="dianomi_context_script" src="https://www.dianomi.com/js/contextfeed.js"></script>
 <div class="dianomi_context" data-dianomi-context-id="\(contextFeedID)"
 """
@@ -152,13 +156,42 @@ public class DianomiAdvertView: UIView {
 
 extension DianomiAdvertView: WKNavigationDelegate {
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        dianomiAdverts.log("[Context feed ID '\(contextFeedID)'] loading finished")
-        status = .loaded
+        guard let scriptURL = URL(string: "https://www.dianomi.com/js/contentRendererListener.js") else {
+            self.status = .failed(.invalidRequest)
+            return
+        }
+        
+        DispatchQueue.global().async { [weak self] in
+            do {
+                let contents = try String(contentsOf: scriptURL)
+                DispatchQueue.main.async {
+                    self?.webView.evaluateJavaScript(contents) { _, error in
+                        if let error = error {
+                            self?.loadingError(error)
+                        } else {
+                            self?.status = .loaded
+                        }
+                    }
+                }
+            } catch(let error) {
+                self?.loadingError(error)
+            }
+        }
     }
     
     public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        dianomiAdverts.log("[Context feed ID '\(contextFeedID)'] failed with error: \(error.localizedDescription)")
-        status = .failed(.loadingError(error))
+        loadingError(error)
+    }
+    
+    public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        loadingError(error)
+    }
+    
+    private func loadingError(_ error: Error) {
+        DispatchQueue.main.async { [contextFeedID, weak self] in
+            self?.dianomiAdverts.log("[Context feed ID '\(contextFeedID)'] failed with error: \(error.localizedDescription)")
+            self?.status = .failed(.loadingError(error))
+        }
     }
 }
 
@@ -167,9 +200,7 @@ extension DianomiAdvertView: WKUIDelegate {
 
         if navigationAction.targetFrame == nil, let url = navigationAction.request.url {
             dianomiAdverts.log("[Context feed ID '\(contextFeedID)'] Opening URL: \(url) in the external browser")
-#if os(iOS)
             UIApplication.shared.open(url)
-#endif
         }
         return nil
     }
@@ -177,8 +208,6 @@ extension DianomiAdvertView: WKUIDelegate {
 
 extension DianomiAdvertView: WKScriptMessageHandler {
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        dianomiAdverts.log("[Context feed ID '\(contextFeedID)'] Content rendered")
-        
         webView.evaluateJavaScript("document.documentElement.scrollHeight", completionHandler: { [contextFeedID, weak self] (height, error) in
             if let height = height as? CGFloat {
                 self?.dianomiAdverts.log("[Context feed ID '\(contextFeedID)'] produced height: \(height)")
