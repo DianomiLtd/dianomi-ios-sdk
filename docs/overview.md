@@ -1,4 +1,4 @@
-# Overview of Dianomi Android SDK
+# Overview of Dianomi iOS SDK
 
 ## Advert containers
 
