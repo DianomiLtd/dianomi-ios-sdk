@@ -17,7 +17,7 @@ Logging is usefuly for troubleshooting Ad loading when development. Logging is d
 To enable debug logging, set:
 
 ```
-DianomiAdvertsshared.loggingEnabled = true
+DianomiAdverts.shared.loggingEnabled = true
 ```
 
 ## Setting Advertising ID
@@ -41,7 +41,7 @@ Please follow Apple documentation about how to obtain the advertising ID:
 ## Setting an app User ID
 > Consider data privacy when sharing any User ID.
 
-If your app has the concept of a User ID, providing the SDK with that User ID may help Dianomi to better target adverts. Set User ID by calling `setUserId(...)`, e.g.
+If your app has the concept of a User ID, providing the SDK with that User ID may help Dianomi to better target adverts. Set User ID by setting `userID`, e.g.
 
 ```
 DianomiAdverts.shared.userID = "User ID"
@@ -54,7 +54,7 @@ DianomiAdverts.shared.userID = "User ID"
 If your app is subject to privacy regulations such as GFPR or CCPA, you may be required to provide the SDK with a Consent String representing the current user’s consent status for your app.
 
 ```
-DianomiAdverts.shared.consent "Consent string"
+DianomiAdverts.shared.consent = "Consent string"
 ```
 
 ### Obtaining Consent String from your Consent Management Platform (CMP)
