@@ -32,7 +32,7 @@ A `DianomiAdvertView` container can be defined in the interface builder or can b
 ### Interface Builder layout example
 To define a container, use the standard `UIKitView` element and override its Class to `DianomiAdvertView` and Module `DianomiAdverts`. You'll also need to define the following properties:
 
-- `ContextFeedId` (required)
+- `ContextFeedID` (required)
 - `AdvertContext` (optional)
 
 ![](interface-builder.png)
