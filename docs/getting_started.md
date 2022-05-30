@@ -43,7 +43,7 @@ To create the same `DianomiAdvertView` programmatically, instantiate it like you
 
 ```
 let advert = DianomiAdvertView(contextFeedID: "123")
-view.addSubView(advert)
+view.addSubview(advert)
 ```
 
 In most cases, you’ll also need to specify the advert’s container size and position using standard UIKit methods (autolayout constraints, View’s frame or any other method). The dimensions (especially Advert’s height) configured at this time might not be the final one.
