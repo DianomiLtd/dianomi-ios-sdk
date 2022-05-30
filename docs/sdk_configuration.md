@@ -115,4 +115,4 @@ Providing the SDK with the context in which adverts will be displayed may help D
 
 - Set Advert Context in the IB using custom attribute Context
 
-- Set Advert Context programmatically during initialising of the ad container `DianomiAdvertView(contextFeedId: "id", context: "" "Your Context")`
+- Set Advert Context programmatically during initialising of the ad container `DianomiAdvertView(contextFeedID: "id", context: "Your Context")`
